@@ -8,6 +8,10 @@ export default async function handler(req, res) {
       {
         name: "月刊少年チャンピオン",
         url: "https://www.akitashoten.co.jp/m-champion"
+      },
+      {
+        name: "ヤングチャンピオン",
+        url: "https://www.akitashoten.co.jp/youngchampion"
       }
     ];
 
