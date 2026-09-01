@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>雑誌最新号</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f5f5f5;
+      font-family: sans-serif;
+    }
+
+    header {
+      background: white;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .magazines {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 15px;
+    }
+
+    .magazine {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .magazine img {
+      width: 100%;
+      display: block;
+    }
+
+    .info {
+      padding: 10px;
+    }
+
+    .name {
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .magazines {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>📚 雑誌最新号</h1>
+</header>
+
+<div class="container">
+
+  <div class="magazines">
+
+    <div class="magazine">
+      <img
+        src="https://www.akitashoten.co.jp/magazine/6486/image"
+        alt="ヤングチャンピオン烈"
+      >
+
+      <div class="info">
+        <div class="name">ヤングチャンピオン烈</div>
+        <div>最新号</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>
