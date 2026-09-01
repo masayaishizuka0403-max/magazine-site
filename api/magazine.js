@@ -1,12 +1,22 @@
 export default async function handler(req, res) {
 
+  // ==========================================
+  // キャッシュ設定
+  // ==========================================
+  // 1時間は同じ結果を利用。
+  // 1時間経過後、次のアクセスで最新情報を取得する。
+  res.setHeader(
+    "Cache-Control",
+    "s-maxage=3600, stale-while-revalidate=86400"
+  );
+
   try {
 
     const magazines = [
 
-      // =========================
+      // ==========================================
       // 秋田書店
-      // =========================
+      // ==========================================
 
       {
         name: "ヤングチャンピオン烈",
@@ -33,9 +43,9 @@ export default async function handler(req, res) {
       },
 
 
-      // =========================
+      // ==========================================
       // ヤングガンガン
-      // =========================
+      // ==========================================
 
       {
         name: "ヤングガンガン",
@@ -44,9 +54,9 @@ export default async function handler(req, res) {
       },
 
 
-      // =========================
+      // ==========================================
       // 週刊プレイボーイ
-      // =========================
+      // ==========================================
 
       {
         name: "週刊プレイボーイ",
@@ -55,9 +65,9 @@ export default async function handler(req, res) {
       },
 
 
-      // =========================
+      // ==========================================
       // ヤングアニマル
-      // =========================
+      // ==========================================
 
       {
         name: "ヤングアニマル",
@@ -66,9 +76,9 @@ export default async function handler(req, res) {
       },
 
 
-      // =========================
+      // ==========================================
       // FRIDAY
-      // =========================
+      // ==========================================
 
       {
         name: "FRIDAY",
@@ -77,9 +87,9 @@ export default async function handler(req, res) {
       },
 
 
-      // =========================
+      // ==========================================
       // 月刊ヤングマガジン
-      // =========================
+      // ==========================================
 
       {
         name: "月刊ヤングマガジン",
@@ -90,19 +100,50 @@ export default async function handler(req, res) {
     ];
 
 
-    const results = [];
+    // ==========================================
+    // User-Agent
+    // ==========================================
+
+    const headers = {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36"
+    };
 
 
-    for (const magazine of magazines) {
+    // ==========================================
+    // 1誌を取得する関数
+    // ==========================================
+
+    async function getMagazine(magazine) {
 
       try {
 
+        // --------------------------------------
+        // タイムアウト
+        // --------------------------------------
+
+        const controller = new AbortController();
+
+        const timeout = setTimeout(() => {
+          controller.abort();
+        }, 8000);
+
+
         const response = await fetch(magazine.url, {
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36"
-          }
+          headers,
+          signal: controller.signal
         });
+
+
+        clearTimeout(timeout);
+
+
+        if (!response.ok) {
+          throw new Error(
+            `HTTP ${response.status}`
+          );
+        }
+
 
         const html = await response.text();
 
@@ -122,7 +163,11 @@ export default async function handler(req, res) {
             )
           ].map(match => match[0]);
 
-          const images = [...new Set(matches)];
+
+          const images = [
+            ...new Set(matches)
+          ];
+
 
           image = images[0] || null;
         }
@@ -135,22 +180,39 @@ export default async function handler(req, res) {
         else if (magazine.type === "young_gangan") {
 
           /*
-           * 公式ページには
-           *
-           * ヤングガンガン 2026 No.17
-           *
-           * のように最新号が掲載されている。
+           * 公式ページから最新号のNo.を取得
            */
 
           const issueMatch =
-            html.match(/ヤングガンガン\s*2026\s*No\.(\d+)/);
+            html.match(
+              /ヤングガンガン\s*(?:20\d{2})?\s*No\.(\d+)/i
+            );
+
 
           if (issueMatch) {
 
-            const issueNumber = issueMatch[1];
+            const issueNumber =
+              issueMatch[1];
+
+
+            /*
+             * 年を取得
+             */
+
+            const yearMatch =
+              html.match(
+                /ヤングガンガン\s*(20\d{2})\s*No\.\d+/i
+              );
+
+
+            const year =
+              yearMatch
+                ? yearMatch[1]
+                : new Date().getFullYear();
+
 
             image =
-              `https://magazine.jp.square-enix.com/yg/new/images/2026/${issueNumber}.jpg`;
+              `https://magazine.jp.square-enix.com/yg/new/images/${year}/${issueNumber}.jpg`;
           }
         }
 
@@ -161,63 +223,69 @@ export default async function handler(req, res) {
 
         else if (magazine.type === "young_animal") {
 
-          /*
-           * この画像URLは現在号を指す固定エンドポイント。
-           * 白泉社側で中身が更新されるタイプ。
-           */
-
           image =
             "https://magazine.younganimal.com/manage/displays/img_view/younganimal_now_150";
         }
 
 
         // ==========================================
-        // OG IMAGE方式
+        // OG IMAGE
         // ==========================================
 
         else if (magazine.type === "og_image") {
+
+          /*
+           * property → content
+           */
 
           const ogMatch =
             html.match(
               /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
             );
 
+
           if (ogMatch) {
 
-            image = ogMatch[1];
+            image =
+              ogMatch[1];
 
           } else {
 
-            // property/contentの順番が逆の場合
+            /*
+             * content → property
+             */
 
             const ogMatch2 =
               html.match(
                 /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i
               );
 
+
             if (ogMatch2) {
-              image = ogMatch2[1];
+
+              image =
+                ogMatch2[1];
             }
           }
         }
 
 
-        results.push({
+        return {
 
           name: magazine.name,
 
           url: magazine.url,
 
-          image: image,
+          image,
 
           success: !!image
 
-        });
+        };
 
 
       } catch (error) {
 
-        results.push({
+        return {
 
           name: magazine.name,
 
@@ -227,20 +295,44 @@ export default async function handler(req, res) {
 
           success: false,
 
-          error: error.message
+          error:
+            error.name === "AbortError"
+              ? "取得がタイムアウトしました"
+              : error.message
 
-        });
+        };
 
       }
 
     }
 
 
+    // ==========================================
+    // ★ ここが高速化のポイント
+    // ==========================================
+    // 9誌を「順番」ではなく「同時」に取得する
+
+    const results =
+      await Promise.all(
+        magazines.map(
+          magazine =>
+            getMagazine(magazine)
+        )
+      );
+
+
+    // ==========================================
+    // JSONを返す
+    // ==========================================
+
     res.status(200).json({
 
       success: true,
 
-      magazines: results
+      magazines: results,
+
+      updatedAt:
+        new Date().toISOString()
 
     });
 
