@@ -7,10 +7,15 @@
   <title>雑誌最新号</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       background: #f5f5f5;
       font-family: sans-serif;
+      color: #222;
     }
 
     header {
@@ -41,6 +46,7 @@
       background: white;
       border-radius: 8px;
       overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .magazine img {
@@ -54,11 +60,18 @@
 
     .name {
       font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .status {
+      text-align: center;
+      padding: 30px;
     }
 
     @media (max-width: 600px) {
       .magazines {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
     }
   </style>
@@ -72,23 +85,69 @@
 
 <div class="container">
 
-  <div class="magazines">
-
-    <div class="magazine">
-      <img
-        src="https://www.akitashoten.co.jp/magazine/6486/image"
-        alt="ヤングチャンピオン烈"
-      >
-
-      <div class="info">
-        <div class="name">ヤングチャンピオン烈</div>
-        <div>最新号</div>
-      </div>
-    </div>
-
+  <div id="status" class="status">
+    表紙を取得中...
   </div>
 
+  <div id="magazines" class="magazines"></div>
+
 </div>
+
+<script>
+async function loadMagazine() {
+
+  const status = document.getElementById("status");
+  const magazines = document.getElementById("magazines");
+
+  try {
+
+    const response = await fetch("/api/magazine");
+    const data = await response.json();
+
+    if (!data.success || !data.images.length) {
+      throw new Error("表紙が見つかりませんでした");
+    }
+
+    status.style.display = "none";
+
+    const imageUrl = data.images[0];
+
+    magazines.innerHTML = `
+      <div class="magazine">
+
+        <a
+          href="https://www.akitashoten.co.jp/yc-retsu"
+          target="_blank"
+        >
+          <img
+            src="${imageUrl}"
+            alt="ヤングチャンピオン烈"
+          >
+        </a>
+
+        <div class="info">
+          <div class="name">
+            ヤングチャンピオン烈
+          </div>
+
+          <div>
+            最新号
+          </div>
+        </div>
+
+      </div>
+    `;
+
+  } catch (error) {
+
+    status.textContent =
+      "表紙の取得に失敗しました：" + error.message;
+
+  }
+}
+
+loadMagazine();
+</script>
 
 </body>
 </html>
