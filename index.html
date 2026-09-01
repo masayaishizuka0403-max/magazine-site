@@ -68,6 +68,12 @@
       padding: 30px;
     }
 
+    @media (max-width: 800px) {
+      .magazines {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
     @media (max-width: 600px) {
       .magazines {
         grid-template-columns: repeat(2, 1fr);
@@ -94,7 +100,8 @@
 </div>
 
 <script>
-async function loadMagazine() {
+
+async function loadMagazines() {
 
   const status = document.getElementById("status");
   const magazines = document.getElementById("magazines");
@@ -104,39 +111,45 @@ async function loadMagazine() {
     const response = await fetch("/api/magazine");
     const data = await response.json();
 
-    if (!data.success || !data.images.length) {
-      throw new Error("表紙が見つかりませんでした");
+    if (!data.success) {
+      throw new Error("データ取得に失敗しました");
     }
 
     status.style.display = "none";
 
-    const imageUrl = data.images[0];
+    magazines.innerHTML = "";
 
-    magazines.innerHTML = `
-      <div class="magazine">
+    data.magazines.forEach(magazine => {
 
-        <a
-          href="https://www.akitashoten.co.jp/yc-retsu"
-          target="_blank"
-        >
-          <img
-            src="${imageUrl}"
-            alt="ヤングチャンピオン烈"
+      if (!magazine.image) return;
+
+      magazines.innerHTML += `
+        <div class="magazine">
+
+          <a
+            href="${magazine.url}"
+            target="_blank"
           >
-        </a>
+            <img
+              src="${magazine.image}"
+              alt="${magazine.name}"
+            >
+          </a>
 
-        <div class="info">
-          <div class="name">
-            ヤングチャンピオン烈
+          <div class="info">
+            <div class="name">
+              ${magazine.name}
+            </div>
+
+            <div>
+              最新号
+            </div>
           </div>
 
-          <div>
-            最新号
-          </div>
         </div>
+      `;
 
-      </div>
-    `;
+    });
 
   } catch (error) {
 
@@ -146,7 +159,8 @@ async function loadMagazine() {
   }
 }
 
-loadMagazine();
+loadMagazines();
+
 </script>
 
 </body>
