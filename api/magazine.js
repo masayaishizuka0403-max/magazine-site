@@ -1,30 +1,49 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch(
-      "https://www.akitashoten.co.jp/yc-retsu"
-    );
+    const magazines = [
+      {
+        name: "ヤングチャンピオン烈",
+        url: "https://www.akitashoten.co.jp/yc-retsu"
+      },
+      {
+        name: "月刊少年チャンピオン",
+        url: "https://www.akitashoten.co.jp/m-champion"
+      }
+    ];
 
-    const html = await response.text();
+    const results = [];
 
-    // /magazine/数字/image の画像URLを探す
-    const matches = [
-      ...html.matchAll(
-        /https:\/\/www\.akitashoten\.co\.jp\/magazine\/\d+\/image/g
-      )
-    ].map(match => match[0]);
+    for (const magazine of magazines) {
 
-    // 重複削除
-    const images = [...new Set(matches)];
+      const response = await fetch(magazine.url);
+      const html = await response.text();
+
+      const matches = [
+        ...html.matchAll(
+          /https:\/\/www\.akitashoten\.co\.jp\/magazine\/\d+\/image/g
+        )
+      ].map(match => match[0]);
+
+      const images = [...new Set(matches)];
+
+      results.push({
+        name: magazine.name,
+        url: magazine.url,
+        image: images[0] || null
+      });
+    }
 
     res.status(200).json({
       success: true,
-      images: images
+      magazines: results
     });
 
   } catch (error) {
+
     res.status(500).json({
       success: false,
       error: error.message
     });
+
   }
 }
