@@ -75,17 +75,35 @@ export default async function handler(req, res) {
   }
 
   function monthlyYanmagaImage(html, base) {
-    const images = imageTags(html, base);
-    const scored = images.map(item => {
-      let score = 0;
-      if (/mym|gekkan|monthly/i.test(item.src)) score += 45;
-      if (/cover|hyoshi|hyo[u]?shi|magazine|issue|\/img\/|\/images\//i.test(item.src)) score += 20;
-      if (/最新号|202[0-9]\s*no\.?\s*\d+/i.test(item.context)) score += 35;
-      if (/logo|ttl|title|bnr|banner|icon|header|footer|mag_topttl/i.test(item.src)) score -= 90;
-      if (/backnumber|back_number|back-number/i.test(item.context)) score -= 20;
-      return { ...item, score };
-    }).sort((a, b) => b.score - a.score || a.index - b.index);
-    return scored[0]?.score >= 40 ? scored[0].src : ogImage(html, base);
+    // 月刊ヤングマガジンの表紙は content/images/_monthly_cover/m_YYYY-MM_*.jpg
+    // という専用ディレクトリにある。汎用的な画像スコアより優先する。
+    const covers = [...html.matchAll(/<img\b[^>]*>/gi)].map((match) => {
+      const tag = match[0];
+      const src = attr(tag, "data-src") || attr(tag, "data-original") ||
+        attr(tag, "data-lazy-src") || attr(tag, "src");
+      const url = absolute(src, base);
+      if (!url || !/\/_monthly_cover\/m_20\d{2}-\d{2}_[^/?#]+\.(?:jpe?g|png|webp)(?:[?#]|$)/i.test(url)) return null;
+      const alt = attr(tag, "alt");
+      const nearby = html.slice(Math.max(0, match.index - 350), match.index + tag.length + 200);
+      const issue = url.match(/\/m_(20\d{2})-(\d{2})_/i);
+      return {
+        url,
+        yearMonth: issue ? Number(issue[1]) * 100 + Number(issue[2]) : 0,
+        isLatest: /最新号|最新刊|発売中/.test(nearby),
+        isBackNumber: /バックナンバー|back[ _-]?number/i.test(nearby),
+        isMagazine: /月刊ヤングマガジン/.test(alt),
+        index: match.index
+      };
+    }).filter(Boolean);
+
+    // 最新号と明記された表紙を優先し、なければ年月が新しい表紙を選ぶ。
+    // サイトのバックナンバーが同じページに載っていても対応する。
+    covers.sort((a, b) =>
+      Number(b.isLatest && !b.isBackNumber) - Number(a.isLatest && !a.isBackNumber) ||
+      b.yearMonth - a.yearMonth ||
+      Number(b.isMagazine) - Number(a.isMagazine) || a.index - b.index
+    );
+    return covers[0]?.url || null;
   }
 
   async function getMagazine(magazine) {
