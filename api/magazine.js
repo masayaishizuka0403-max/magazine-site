@@ -1,352 +1,131 @@
 export default async function handler(req, res) {
-
-  // ==========================================
-  // キャッシュ設定
-  // ==========================================
-  // 1時間は同じ結果を利用。
-  // 1時間経過後、次のアクセスで最新情報を取得する。
-  res.setHeader(
-    "Cache-Control",
-    "s-maxage=3600, stale-while-revalidate=86400"
-  );
-
-  try {
-
-    const magazines = [
-
-      // ==========================================
-      // 秋田書店
-      // ==========================================
-
-      {
-        name: "ヤングチャンピオン烈",
-        url: "https://www.akitashoten.co.jp/yc-retsu",
-        type: "akita"
-      },
-
-      {
-        name: "月刊少年チャンピオン",
-        url: "https://www.akitashoten.co.jp/m-champion",
-        type: "akita"
-      },
-
-      {
-        name: "ヤングチャンピオン",
-        url: "https://www.akitashoten.co.jp/youngchampion",
-        type: "akita"
-      },
-
-      {
-        name: "別冊ヤングチャンピオン",
-        url: "https://www.akitashoten.co.jp/bessatsu-yc",
-        type: "akita"
-      },
-
-
-      // ==========================================
-      // ヤングガンガン
-      // ==========================================
-
-      {
-        name: "ヤングガンガン",
-        url: "https://magazine.jp.square-enix.com/yg/new/",
-        type: "young_gangan"
-      },
-
-
-      // ==========================================
-      // 週刊プレイボーイ
-      // ==========================================
-
-      {
-        name: "週刊プレイボーイ",
-        url: "https://www.grajapa.shueisha.co.jp/weeklyplayboy",
-        type: "og_image"
-      },
-
-
-      // ==========================================
-      // ヤングアニマル
-      // ==========================================
-
-      {
-        name: "ヤングアニマル",
-        url: "https://magazine.younganimal.com/",
-        type: "young_animal"
-      },
-
-
-      // ==========================================
-      // FRIDAY
-      // ==========================================
-
-      {
-        name: "FRIDAY",
-        url: "https://friday.gold/magazine/latest",
-        type: "og_image"
-      },
-
-
-      // ==========================================
-      // 月刊ヤングマガジン
-      // ==========================================
-
-      {
-        name: "月刊ヤングマガジン",
-        url: "https://magazine.yanmaga.jp/mym/",
-        type: "og_image"
-      }
-
-    ];
-
-
-    // ==========================================
-    // User-Agent
-    // ==========================================
-
-    const headers = {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36"
-    };
-
-
-    // ==========================================
-    // 1誌を取得する関数
-    // ==========================================
-
-    async function getMagazine(magazine) {
-
-      try {
-
-        // --------------------------------------
-        // タイムアウト
-        // --------------------------------------
-
-        const controller = new AbortController();
-
-        const timeout = setTimeout(() => {
-          controller.abort();
-        }, 8000);
-
-
-        const response = await fetch(magazine.url, {
-          headers,
-          signal: controller.signal
-        });
-
-
-        clearTimeout(timeout);
-
-
-        if (!response.ok) {
-          throw new Error(
-            `HTTP ${response.status}`
-          );
-        }
-
-
-        const html = await response.text();
-
-
-        let image = null;
-
-
-        // ==========================================
-        // 秋田書店
-        // ==========================================
-
-        if (magazine.type === "akita") {
-
-          const matches = [
-            ...html.matchAll(
-              /https:\/\/www\.akitashoten\.co\.jp\/magazine\/\d+\/image/g
-            )
-          ].map(match => match[0]);
-
-
-          const images = [
-            ...new Set(matches)
-          ];
-
-
-          image = images[0] || null;
-        }
-
-
-        // ==========================================
-        // ヤングガンガン
-        // ==========================================
-
-        else if (magazine.type === "young_gangan") {
-
-          /*
-           * 公式ページから最新号のNo.を取得
-           */
-
-          const issueMatch =
-            html.match(
-              /ヤングガンガン\s*(?:20\d{2})?\s*No\.(\d+)/i
-            );
-
-
-          if (issueMatch) {
-
-            const issueNumber =
-              issueMatch[1];
-
-
-            /*
-             * 年を取得
-             */
-
-            const yearMatch =
-              html.match(
-                /ヤングガンガン\s*(20\d{2})\s*No\.\d+/i
-              );
-
-
-            const year =
-              yearMatch
-                ? yearMatch[1]
-                : new Date().getFullYear();
-
-
-            image =
-              `https://magazine.jp.square-enix.com/yg/new/images/${year}/${issueNumber}.jpg`;
-          }
-        }
-
-
-        // ==========================================
-        // ヤングアニマル
-        // ==========================================
-
-        else if (magazine.type === "young_animal") {
-
-          image =
-            "https://magazine.younganimal.com/manage/displays/img_view/younganimal_now_150";
-        }
-
-
-        // ==========================================
-        // OG IMAGE
-        // ==========================================
-
-        else if (magazine.type === "og_image") {
-
-          /*
-           * property → content
-           */
-
-          const ogMatch =
-            html.match(
-              /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
-            );
-
-
-          if (ogMatch) {
-
-            image =
-              ogMatch[1];
-
-          } else {
-
-            /*
-             * content → property
-             */
-
-            const ogMatch2 =
-              html.match(
-                /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i
-              );
-
-
-            if (ogMatch2) {
-
-              image =
-                ogMatch2[1];
-            }
-          }
-        }
-
-
-        return {
-
-          name: magazine.name,
-
-          url: magazine.url,
-
-          image,
-
-          success: !!image
-
-        };
-
-
-      } catch (error) {
-
-        return {
-
-          name: magazine.name,
-
-          url: magazine.url,
-
-          image: null,
-
-          success: false,
-
-          error:
-            error.name === "AbortError"
-              ? "取得がタイムアウトしました"
-              : error.message
-
-        };
-
-      }
-
-    }
-
-
-    // ==========================================
-    // ★ ここが高速化のポイント
-    // ==========================================
-    // 9誌を「順番」ではなく「同時」に取得する
-
-    const results =
-      await Promise.all(
-        magazines.map(
-          magazine =>
-            getMagazine(magazine)
-        )
-      );
-
-
-    // ==========================================
-    // JSONを返す
-    // ==========================================
-
-    res.status(200).json({
-
-      success: true,
-
-      magazines: results,
-
-      updatedAt:
-        new Date().toISOString()
-
-    });
-
-
-  } catch (error) {
-
-    res.status(500).json({
-
-      success: false,
-
-      error: error.message
-
-    });
-
+  res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
+
+  const magazines = [
+    { name: "ヤングチャンピオン烈", url: "https://www.akitashoten.co.jp/yc-retsu", type: "akita" },
+    { name: "月刊少年チャンピオン", url: "https://www.akitashoten.co.jp/m-champion", type: "akita" },
+    { name: "ヤングチャンピオン", url: "https://www.akitashoten.co.jp/youngchampion", type: "akita" },
+    { name: "別冊ヤングチャンピオン", url: "https://www.akitashoten.co.jp/bessatsu-yc", type: "akita" },
+    { name: "ヤングガンガン", url: "https://magazine.jp.square-enix.com/yg/new/", type: "young_gangan" },
+    { name: "週刊プレイボーイ", url: "https://www.grajapa.shueisha.co.jp/weeklyplayboy", type: "og_image" },
+    { name: "ヤングアニマル", url: "https://magazine.younganimal.com/", type: "young_animal" },
+    { name: "FRIDAY", url: "https://friday.gold/magazine/latest", type: "friday" },
+    { name: "月刊ヤングマガジン", url: "https://magazine.yanmaga.jp/mym/", type: "monthly_yanmaga" }
+  ];
+
+  const headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "ja,en-US;q=0.8,en;q=0.6"
+  };
+
+  function decode(value = "") {
+    return value.replace(/&amp;/gi, "&").replace(/&quot;/gi, '"')
+      .replace(/&#39;|&#x27;/gi, "'").replace(/&#x2f;/gi, "/")
+      .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)));
   }
 
+  function attr(tag, name) {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = tag.match(new RegExp("(?:^|\\s)" + escaped + "\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))", "i"));
+    return match ? decode(match[1] ?? match[2] ?? match[3]) : "";
+  }
+
+  function absolute(value, base) {
+    if (!value || /^(data:|blob:|javascript:)/i.test(value)) return null;
+    try {
+      const url = new URL(value.trim(), base);
+      return /^https?:$/.test(url.protocol) ? url.href : null;
+    } catch { return null; }
+  }
+
+  function imageTags(html, base) {
+    return [...html.matchAll(/<img\b[^>]*>/gi)].map(match => {
+      const tag = match[0];
+      const srcset = attr(tag, "data-srcset") || attr(tag, "srcset");
+      const srcsetLast = srcset ? srcset.split(/,\s+(?=https?:\/\/|\/)/).pop()?.trim().split(/\s+/)[0] : "";
+      const src = attr(tag, "data-src") || attr(tag, "data-original") || attr(tag, "data-lazy-src") || attr(tag, "src") || srcsetLast;
+      return { src: absolute(src, base), context: (tag + " " + html.slice(Math.max(0, match.index - 250), match.index)).toLowerCase(), index: match.index };
+    }).filter(item => item.src);
+  }
+
+  function ogImage(html, base) {
+    for (const tag of html.match(/<meta\b[^>]*>/gi) || []) {
+      const key = (attr(tag, "property") || attr(tag, "name")).toLowerCase();
+      if (key === "og:image" || key === "twitter:image") {
+        const url = absolute(attr(tag, "content"), base);
+        if (url) return url;
+      }
+    }
+    return null;
+  }
+
+  function fridayImage(html, base) {
+    const images = imageTags(html, base);
+    const scored = images.map(item => {
+      let score = 0;
+      if (/assets\.friday\.gold/.test(item.src)) score += 30;
+      if (/friday[_-]|\/friday-wp-production-assets\//i.test(item.src)) score += 35;
+      if (/magazine|cover|表紙|最新号/.test(item.context)) score += 20;
+      if (/logo|icon|banner|avatar|thumbnail/i.test(item.src)) score -= 50;
+      return { ...item, score };
+    }).sort((a, b) => b.score - a.score || a.index - b.index);
+    return scored[0]?.score >= 45 ? scored[0].src : ogImage(html, base);
+  }
+
+  function monthlyYanmagaImage(html, base) {
+    const images = imageTags(html, base);
+    const scored = images.map(item => {
+      let score = 0;
+      if (/mym|gekkan|monthly/i.test(item.src)) score += 45;
+      if (/cover|hyoshi|hyo[u]?shi|magazine|issue|\/img\/|\/images\//i.test(item.src)) score += 20;
+      if (/最新号|202[0-9]\s*no\.?\s*\d+/i.test(item.context)) score += 35;
+      if (/logo|ttl|title|bnr|banner|icon|header|footer|mag_topttl/i.test(item.src)) score -= 90;
+      if (/backnumber|back_number|back-number/i.test(item.context)) score -= 20;
+      return { ...item, score };
+    }).sort((a, b) => b.score - a.score || a.index - b.index);
+    return scored[0]?.score >= 40 ? scored[0].src : ogImage(html, base);
+  }
+
+  async function getMagazine(magazine) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(magazine.url, { headers, signal: controller.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const html = await response.text();
+      let image = null;
+
+      if (magazine.type === "akita") {
+        image = [...new Set(html.match(/https:\/\/www\.akitashoten\.co\.jp\/magazine\/\d+\/image/g) || [])][0] || null;
+      } else if (magazine.type === "young_gangan") {
+        const issue = html.match(/ヤングガンガン\s*(?:20\d{2})?\s*No\.(\d+)/i);
+        const year = html.match(/ヤングガンガン\s*(20\d{2})\s*No\.\d+/i)?.[1] || new Date().getFullYear();
+        if (issue) image = `https://magazine.jp.square-enix.com/yg/new/images/${year}/${issue[1]}.jpg`;
+      } else if (magazine.type === "young_animal") {
+        image = "https://magazine.younganimal.com/manage/displays/img_view/younganimal_now_150";
+      } else if (magazine.type === "friday") {
+        image = fridayImage(html, magazine.url);
+      } else if (magazine.type === "monthly_yanmaga") {
+        image = monthlyYanmagaImage(html, magazine.url);
+      } else {
+        image = ogImage(html, magazine.url);
+      }
+
+      return { name: magazine.name, url: magazine.url, image, success: !!image };
+    } catch (error) {
+      return { name: magazine.name, url: magazine.url, image: null, success: false,
+        error: error.name === "AbortError" ? "取得がタイムアウトしました" : error.message };
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  try {
+    const results = await Promise.all(magazines.map(getMagazine));
+    res.status(200).json({ success: true, magazines: results, updatedAt: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 }
