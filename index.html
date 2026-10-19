@@ -3,165 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>雑誌最新号</title>
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: #f5f5f5;
-      font-family: sans-serif;
-      color: #222;
-    }
-
-    header {
-      background: white;
-      padding: 20px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 24px;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    .magazines {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 15px;
-    }
-
-    .magazine {
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .magazine img {
-      width: 100%;
-      display: block;
-    }
-
-    .info {
-      padding: 10px;
-    }
-
-    .name {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .status {
-      text-align: center;
-      padding: 30px;
-    }
-
-    @media (max-width: 800px) {
-      .magazines {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media (max-width: 600px) {
-      .magazines {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f5f5f5; font-family: sans-serif; color: #222; }
+    header { background: white; padding: 20px; text-align: center; border-bottom: 1px solid #ddd; }
+    h1 { margin: 0; font-size: 24px; }
+    .container { max-width: 1000px; margin: auto; padding: 20px; }
+    .magazines { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
+    .magazine { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .magazine img { width: 100%; display: block; }
+    .info { padding: 10px; }
+    .name { font-weight: bold; margin-bottom: 5px; }
+    .status { text-align: center; padding: 30px; }
+    .image-error { padding: 35px 8px; text-align: center; font-size: 13px; color: #666; }
+    @media (max-width: 800px) { .magazines { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { .magazines { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
   </style>
 </head>
-
 <body>
-
-<header>
-  <h1>📚 雑誌最新号</h1>
-</header>
-
+<header><h1>📚 雑誌最新号</h1></header>
 <div class="container">
-
-  <div id="status" class="status">
-    表紙を取得中...
-  </div>
-
+  <div id="status" class="status">表紙を取得中...</div>
   <div id="magazines" class="magazines"></div>
-
 </div>
-
 <script>
-
 async function loadMagazines() {
-
   const status = document.getElementById("status");
   const magazines = document.getElementById("magazines");
-
   try {
-
     const response = await fetch("/api/magazine");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-
-    if (!data.success) {
-      throw new Error("データ取得に失敗しました");
-    }
-
-    status.style.display = "none";
-
-    magazines.innerHTML = "";
-
+    if (!data.success) throw new Error("データ取得に失敗しました");
+    magazines.replaceChildren();
+    let count = 0;
     data.magazines.forEach(magazine => {
-
       if (!magazine.image) return;
-
-      magazines.innerHTML += `
-        <div class="magazine">
-
-          <a
-            href="${magazine.url}"
-            target="_blank"
-          >
-            <img
-              src="${magazine.image}"
-              alt="${magazine.name}"
-            >
-          </a>
-
-          <div class="info">
-            <div class="name">
-              ${magazine.name}
-            </div>
-
-            <div>
-              最新号
-            </div>
-          </div>
-
-        </div>
-      `;
-
+      count++;
+      const card = document.createElement("div");
+      card.className = "magazine";
+      const link = document.createElement("a");
+      link.href = magazine.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      const img = document.createElement("img");
+      img.src = magazine.image;
+      img.alt = magazine.name;
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+      img.onerror = () => {
+        const message = document.createElement("div");
+        message.className = "image-error";
+        message.textContent = "表紙画像を表示できません";
+        img.replaceWith(message);
+      };
+      link.appendChild(img);
+      const info = document.createElement("div");
+      info.className = "info";
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = magazine.name;
+      const latest = document.createElement("div");
+      latest.textContent = "最新号";
+      info.append(name, latest);
+      card.append(link, info);
+      magazines.appendChild(card);
     });
-
+    if (count) status.style.display = "none";
+    else status.textContent = "表紙画像を取得できませんでした";
   } catch (error) {
-
-    status.textContent =
-      "表紙の取得に失敗しました：" + error.message;
-
+    status.textContent = "表紙の取得に失敗しました：" + error.message;
   }
 }
-
 loadMagazines();
-
 </script>
-
 </body>
 </html>
