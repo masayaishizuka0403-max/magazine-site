@@ -1,82 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>雑誌最新号</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>女性グラビア雑誌 | 最新刊 表紙ギャラリー</title>
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #f5f5f5; font-family: sans-serif; color: #222; }
-    header { background: white; padding: 20px; text-align: center; border-bottom: 1px solid #ddd; }
-    h1 { margin: 0; font-size: 24px; }
-    .container { max-width: 1000px; margin: auto; padding: 20px; }
-    .magazines { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
-    .magazine { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .magazine img { width: 100%; display: block; }
-    .info { padding: 10px; }
-    .name { font-weight: bold; margin-bottom: 5px; }
-    .status { text-align: center; padding: 30px; }
-    .image-error { padding: 35px 8px; text-align: center; font-size: 13px; color: #666; }
-    @media (max-width: 800px) { .magazines { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 600px) { .magazines { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+    :root{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;background:#0b0d12;color:#f3f5fa}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select{font:inherit}
+    .wrap{max-width:1450px;margin:auto;padding:34px 24px 72px}
+    header{display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-bottom:25px}
+    .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#d5a4b9;font-weight:700}
+    h1{font-size:clamp(24px,3vw,40px);line-height:1.28;letter-spacing:-.035em;margin:10px 0}
+    .subtitle{color:#a4acbc;font-size:13px;line-height:1.8;max-width:810px;margin:0}
+    #refresh{border:1px solid #a75c7e;background:#8e3c63;color:#fff;font-weight:700;padding:13px 19px;border-radius:12px;cursor:pointer;white-space:nowrap}
+    #refresh:hover{background:#ac4b7a}button:disabled{opacity:.5;cursor:progress}
+    .toolbar{background:#151923;border:1px solid #2a303c;padding:17px;border-radius:16px;margin:5px 0 16px;display:grid;gap:15px}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+    #search{flex:1;min-width:220px;background:#0d111a;border:1px solid #3a4250;border-radius:10px;color:#fff;padding:12px 15px;outline:none}
+    #search:focus{border-color:#d18bad}
+    #filter-status{background:#0d111a;border:1px solid #3a4250;color:#fff;border-radius:10px;padding:12px 14px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}.pill{border:1px solid #343b48;background:#202530;color:#d2d6e1;padding:8px 13px;border-radius:100px;cursor:pointer;font-size:12px}.pill.selected{background:#e5b4c9;border-color:#e5b4c9;color:#27212a;font-weight:700}
+    .meta{display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:0 2px 18px;color:#a5adbc;font-size:12px}.meta #count{color:#f4d9e6;font-weight:700}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));gap:18px}
+    .magazine{min-width:0;border:1px solid #282d38;background:#151923;border-radius:13px;overflow:hidden;transition:border-color .15s,transform .15s}
+    .magazine:hover{border-color:#71415b;transform:translateY(-2px)}
+    .cover{height:255px;display:flex;align-items:center;justify-content:center;position:relative;background:#1d2530;border-bottom:1px solid #303541;padding:8px}
+    .cover img{display:block;width:100%;height:100%;object-fit:contain}
+    .no-cover{position:absolute;right:8px;bottom:9px;font-size:9px;letter-spacing:.06em;background:#181e28aa;padding:3px 6px;border-radius:4px;color:#a6b2c5}
+    .mag-info{padding:13px 12px 12px}.mag-group{color:#bb849f;font-size:10px;letter-spacing:.03em;font-weight:700}
+    h2{font-size:14px;line-height:1.45;margin:7px 0 8px;font-weight:750;min-height:40px;overflow-wrap:anywhere}
+    .issue{color:#d1d7e2;font-size:11px;min-height:17px;margin:0 0 8px}.status{font-size:10px;line-height:1.45;margin:0 0 12px;min-height:27px;overflow-wrap:anywhere}
+    .status.yes{color:#9fe1c2}.status.not{color:#a6aebe}
+    .actions{border-top:1px solid #313644;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:11px}
+    .actions a{font-size:11px;color:#f1b6d0;text-decoration:none}.actions a:hover{text-decoration:underline}
+    .actions button{font-size:11px;border:1px solid #424958;background:#232936;color:#d7dfea;border-radius:7px;padding:5px 8px;cursor:pointer}
+    footer{margin-top:44px;padding-top:22px;border-top:1px solid #2e3440;color:#8b95a6;font-size:12px;line-height:1.85}
+    a{color:inherit}.empty{color:#b7bfc9}
+    @media(max-width:480px){.wrap{padding:23px 12px 56px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.cover{height:225px}.toolbar{padding:12px}.mag-info{padding:10px}.meta{gap:5px}h2{font-size:13px}}
   </style>
+  <script defer src="/app.js"></script>
 </head>
 <body>
-<header><h1>📚 雑誌最新号</h1></header>
-<div class="container">
-  <div id="status" class="status">表紙を取得中...</div>
-  <div id="magazines" class="magazines"></div>
-</div>
-<script>
-async function loadMagazines() {
-  const status = document.getElementById("status");
-  const magazines = document.getElementById("magazines");
-  try {
-    const response = await fetch("/api/magazine");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    if (!data.success) throw new Error("データ取得に失敗しました");
-    magazines.replaceChildren();
-    let count = 0;
-    data.magazines.forEach(magazine => {
-      if (!magazine.image) return;
-      count++;
-      const card = document.createElement("div");
-      card.className = "magazine";
-      const link = document.createElement("a");
-      link.href = magazine.url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      const img = document.createElement("img");
-      img.src = magazine.image;
-      img.alt = magazine.name;
-      img.loading = "lazy";
-      img.referrerPolicy = "no-referrer";
-      img.onerror = () => {
-        const message = document.createElement("div");
-        message.className = "image-error";
-        message.textContent = "表紙画像を表示できません";
-        img.replaceWith(message);
-      };
-      link.appendChild(img);
-      const info = document.createElement("div");
-      info.className = "info";
-      const name = document.createElement("div");
-      name.className = "name";
-      name.textContent = magazine.name;
-      const latest = document.createElement("div");
-      latest.textContent = "最新号";
-      info.append(name, latest);
-      card.append(link, info);
-      magazines.appendChild(card);
-    });
-    if (count) status.style.display = "none";
-    else status.textContent = "表紙画像を取得できませんでした";
-  } catch (error) {
-    status.textContent = "表紙の取得に失敗しました：" + error.message;
-  }
-}
-loadMagazines();
-</script>
+  <main class="wrap">
+    <header>
+      <div>
+        <div class="eyebrow">Magazine Cover Collection</div>
+        <h1>女性グラビア雑誌 <span style="color:#e9a9c5">最新刊ギャラリー</span></h1>
+        <p class="subtitle">女性のグラビアを掲載する雑誌・シリーズ52件を収録。各誌の公式サイトから表紙画像を取得して並べます。休刊誌・不定期刊行誌も含みます。取得画像は自動推定なので、クリックして公式サイトでご確認ください。</p>
+      </div>
+      <button id="refresh" type="button">↻　全誌の情報を再取得</button>
+    </header>
+    <section class="toolbar" aria-label="検索・フィルター">
+      <div class="row"><input id="search" type="search" aria-label="雑誌を検索" placeholder="雑誌名を検索（例：ヤング / FLASH / BOMB）"/><select id="filter-status" aria-label="表示条件"><option value="all">すべて表示</option><option value="has">画像取得あり</option><option value="missing">画像未取得のみ</option></select></div>
+      <div id="filters" class="filters" aria-label="ジャンルを選ぶ"></div>
+    </section>
+    <div class="meta"><span id="count">52誌</span><span id="progress" role="status" aria-live="polite">公式サイトのデータを取得します。</span></div>
+    <section id="grid" class="grid" aria-label="雑誌の表紙一覧"></section>
+    <footer><p>画像の著作権は各出版社・権利者に帰属します。画像の転載・保存・再配布ではなく、公式サイトの公開画像への参照を試みています。公式サイトの仕様・アクセス制限により、画像が取得できない場合があります。</p><p><strong>利用方法：</strong> <code>index.html</code> と <code>app.js</code> を同じフォルダに置き、ターミナルで <code>node app.js</code> を実行し、<code>http://localhost:3000</code> にアクセスしてください。HTMLファイルを直接ダブルクリックしても自動取得はできません。</p></footer>
+  </main>
 </body>
 </html>
