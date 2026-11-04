@@ -1,0 +1,239 @@
+{
+  "週刊プレイボーイ": {
+    "url": "https://www.grajapa.shueisha.co.jp/weeklyplayboy",
+    "label": "週プレ グラジャパ！（集英社公式）",
+    "adapter": "wpb"
+  },
+  "週刊ヤングジャンプ": {
+    "url": "https://youngjump.jp/magazine/",
+    "label": "週刊ヤングジャンプ公式",
+    "imageHint": "cover\\.jpg",
+    "requireHint": true
+  },
+  "週刊ヤングマガジン": {
+    "url": "https://magazine.yanmaga.jp/ym/",
+    "label": "ヤングマガジン公式",
+    "imageHint": "_weekly_cover",
+    "requireHint": true
+  },
+  "週刊少年マガジン": {
+    "url": "https://shonenmagazine.com/smaga/",
+    "label": "週刊少年マガジン公式",
+    "imageHint": "cover|hyoshi|magazine",
+    "requireHint": true
+  },
+  "週刊少年サンデー": {
+    "url": "https://websunday.net/",
+    "label": "WEBサンデー（小学館公式）",
+    "adapter": "websunday"
+  },
+  "週刊少年チャンピオン": {
+    "url": "https://www.akitashoten.co.jp/w-champion/",
+    "label": "秋田書店公式",
+    "imageHint": "/magazine/",
+    "requireHint": true,
+    "verifiedLatest": true
+  },
+  "FLASH": {
+    "url": "https://smart-flash.jp/flash-guidance/",
+    "label": "Smart FLASH（光文社公式）",
+    "imageHint": "2026|jpg",
+    "requireHint": true
+  },
+  "FRIDAY": {
+    "url": "https://friday.gold/magazine/latest",
+    "label": "FRIDAYデジタル（講談社公式）",
+    "imageHint": "FRIDAY_[0-9]",
+    "requireHint": true
+  },
+  "BOMB": {
+    "url": "https://one-publishing.co.jp/magazines/",
+    "label": "ワン・パブリッシング公式",
+    "imageHint": "bomb|cover|491208001",
+    "requireHint": true
+  },
+  "Up To Boy": {
+    "url": "https://utb.wanibooks-newscrunch.com/",
+    "label": "アップトゥボーイ公式サイト",
+    "adapter": "utb"
+  },
+  "B.L.T.": {
+    "url": "https://bltweb.jp/tag/b-l-t/",
+    "label": "B.L.T.web（東京ニュース通信社公式）",
+    "adapter": "blt"
+  },
+  "B.L.T. graph.": {
+    "url": "https://bltweb.jp/tag/blt-graph/",
+    "label": "B.L.T.web（東京ニュース通信社公式）",
+    "adapter": "blt"
+  },
+  "ヤングアニマル": {
+    "url": "https://www.hakusensha.co.jp/news/index.html/",
+    "label": "白泉社公式",
+    "adapter": "hakusensha-ya"
+  },
+  "ヤングガンガン": {
+    "url": "https://magazine.jp.square-enix.com/yg/new/",
+    "label": "ヤングガンガン公式",
+    "imageHint": "cover|hyoshi|new",
+    "requireHint": true
+  },
+  "ビッグコミックスピリッツ": {
+    "url": "https://bigcomicbros.net/spirits/",
+    "label": "ビッグコミックBROS.NET（週刊スピリッツ公式）",
+    "adapter": "spirits"
+  },
+  "ビッグコミックスペリオール": {
+    "url": "https://bigcomicbros.net/bigsuperior/",
+    "label": "ビッグコミックBROS.NET（小学館公式）",
+    "adapter": "superior"
+  },
+  "月刊ヤングマガジン": {
+    "url": "https://magazine.yanmaga.jp/mym/",
+    "label": "ヤングマガジン公式",
+    "imageHint": "_monthly_cover|cover",
+    "requireHint": true
+  },
+  "月刊少年チャンピオン": {
+    "url": "https://www.akitashoten.co.jp/m-champion/",
+    "label": "秋田書店公式",
+    "imageHint": "/magazine/",
+    "requireHint": true,
+    "verifiedLatest": true
+  },
+  "別冊少年チャンピオン": {
+    "url": "https://www.akitashoten.co.jp/b-champion/",
+    "label": "秋田書店公式",
+    "imageHint": "/magazine/",
+    "requireHint": true,
+    "verifiedLatest": true
+  },
+  "ヤングチャンピオン": {
+    "url": "https://www.akitashoten.co.jp/youngchampion/",
+    "label": "秋田書店公式",
+    "imageHint": "/magazine/",
+    "requireHint": true,
+    "verifiedLatest": true
+  },
+  "ヤングチャンピオン烈": {
+    "url": "https://www.akitashoten.co.jp/yc-retsu/",
+    "label": "秋田書店公式",
+    "imageHint": "/magazine/",
+    "requireHint": true,
+    "verifiedLatest": true
+  },
+  "別冊ヤングチャンピオン": {
+    "url": "https://www.akitashoten.co.jp/bessatsu-yc/",
+    "label": "秋田書店公式",
+    "imageHint": "/magazine/",
+    "requireHint": true,
+    "verifiedLatest": true
+  },
+  "ヤングドラゴンエイジ": {
+    "url": "https://dragonage-comic.com/dragon/new-magazine.html",
+    "label": "ドラゴンエイジ公式",
+    "adapter": "dragonage"
+  },
+  "ヤングキング": {
+    "url": "https://www.shonengahosha.co.jp/magazine.php",
+    "label": "少年画報社公式",
+    "adapter": "shonengahosha"
+  },
+  "ヤングキングBULL": {
+    "url": "https://www.shonengahosha.co.jp/magazine.php",
+    "label": "少年画報社公式",
+    "adapter": "shonengahosha"
+  },
+  "漫画アクション": {
+    "url": "https://www.futabasha.co.jp/magazine/action",
+    "label": "双葉社公式",
+    "adapter": "futabasha-action"
+  },
+  "EX大衆": {
+    "url": "https://www.futabasha.co.jp/magazine/ex_taishu",
+    "label": "双葉社公式",
+    "adapter": "futabasha",
+    "grouping": "イーエックスタイシュウザッシ",
+    "media": 1
+  },
+  "Cream": {
+    "url": "https://cream-edit.com/",
+    "label": "Cream編集部公式",
+    "imageHint": "cover|cream|2026",
+    "requireHint": true,
+    "verifiedLatest": true
+  },
+  "グラビアチャンピオン": {
+    "url": "https://www.akitashoten.co.jp/g-champion",
+    "label": "秋田書店公式",
+    "imageHint": "/magazine/",
+    "requireHint": true,
+    "verifiedLatest": true
+  },
+  "FLASHスペシャル": {
+    "url": "https://smart-flash.jp/flashsp-guidance/",
+    "label": "Smart FLASH（光文社公式）",
+    "adapter": "flash-special"
+  },
+  "BRODY": {
+    "url": "https://www.byakuya-shobo.co.jp/brody",
+    "label": "白夜書房公式",
+    "adapter": "brody"
+  },
+  "グラビアザテレビジョン": {
+    "url": "https://store.kadokawa.co.jp/shop/c/c108023/",
+    "label": "カドスト（KADOKAWA公式）",
+    "adapter": "kadokawa"
+  },
+  "SPA!": {
+    "url": "https://nikkan-spa.jp/magazine/",
+    "label": "日刊SPA!公式",
+    "adapter": "spa",
+    "titleMatch": "週刊SPA！"
+  },
+  "Navy": {
+    "url": "https://www.tokuma.jp/search/g15480.html",
+    "label": "徳間書店公式・雑誌一覧",
+    "adapter": "tokuma"
+  },
+  "my fave visual": {
+    "url": "https://myfaveweb.jp/",
+    "label": "my fave公式サイト",
+    "adapter": "myfave"
+  },
+  "旬撮GIRL": {
+    "url": "https://www.fujisan.co.jp/product/1281710510/",
+    "label": "Fujisan・旬撮GIRL最新号一覧",
+    "adapter": "fujisan-series"
+  },
+  "36℃": {
+    "url": "https://www.tokuma.jp/search/g15480.html",
+    "label": "徳間書店公式・雑誌一覧",
+    "adapter": "tokuma"
+  },
+  "ブブカ": {
+    "url": "https://store.byakuya-shobo.co.jp/shopbrand/001/017/X/",
+    "label": "白夜書房公式通販",
+    "adapter": "byakuya"
+  },
+  "DOLCE": {
+    "url": "https://store.byakuya-shobo.co.jp/shopbrand/ct65/",
+    "label": "白夜書房公式通販",
+    "adapter": "byakuya"
+  },
+  "BLT MONSTER Round": {
+    "url": "https://bltweb.jp/tag/blt-monster/",
+    "label": "B.L.T.web（東京ニュース通信社公式）",
+    "adapter": "blt-monster"
+  },
+  "FRIDAY GOLD": {
+    "url": "https://prtimes.jp/main/html/rd/p/000009048.000001719.html",
+    "label": "講談社公式発表",
+    "adapter": "kodansha-friday-gold"
+  },
+  "PARADE": {
+    "url": "https://prtimes.jp/main/html/rd/p/000003893.000013640.html",
+    "label": "小学館公式発表",
+    "adapter": "publisher-press"
+  }
+}
