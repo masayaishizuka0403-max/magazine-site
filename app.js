@@ -30,5 +30,5 @@ async function lookup(x){
  }catch(e){x.status='error';x.error=e.message}
  render();
 }
-async function load(force=false){if(busy)return;busy=true;refreshing=force;if(force){data.forEach(x=>{x.cover=null;x.status='pending';x.date='';x.url=''})}render();let next=0;async function worker(){while(next<data.length){const x=data[next++];if(x.status==='pending')await lookup(x)}}await Promise.all(Array.from({length:2},worker));busy=false;refreshing=false;render()}
+async function load(force=false){if(busy)return;busy=true;refreshing=force;if(force){data.forEach(x=>{x.cover=null;x.status='pending';x.date='';x.url=''})}render();let next=0;async function worker(){while(next<data.length){const x=data[next++];if(x.status==='pending')await lookup(x)}}await Promise.all(Array.from({length:4},worker));busy=false;refreshing=false;render()}
 document.getElementById('refresh').onclick=()=>load(true);render();load();

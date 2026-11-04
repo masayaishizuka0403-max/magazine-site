@@ -549,6 +549,8 @@ module.exports=async function handler(req,res){
   const name=(u.searchParams.get('name')||'').trim();
   if(!name||name.length>80){res.status(400).send('invalid name');return}
   const result=await cover(name,u.searchParams.get('refresh')==='1');
-  res.setHeader('Cache-Control','no-store');res.status(200).json(result);
+  const forceRefresh=u.searchParams.get('refresh')==='1';
+  res.setHeader('Cache-Control',forceRefresh?'no-store':'public, max-age=0, s-maxage=21600, stale-while-revalidate=86400');
+  res.status(200).json(result);
  }catch(e){res.status(500).json({error:e.message})}
 };
