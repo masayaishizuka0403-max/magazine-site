@@ -518,6 +518,18 @@ async function lookup(name){
   const page=await get(source.url);return extract(page.html,{...source,url:page.url},name)
  }catch(e){return {status:'missing',officialUrl:source.url,source:source.label||'',error:`公式ページから取得できませんでした（${e.message}）。公式サイト側の制限・構成変更の可能性があります。`}}
 }
+async function downloadCover(value){
+ // Fetch the official cover image server-side and return it as data for the browser.
+ const r=await fetch(value.image,{headers:{...agent,Accept:'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',Referer:value.officialUrl||value.url||value.image},signal:AbortSignal.timeout(15000)});
+ if(!r.ok)throw Error(`画像 HTTP ${r.status} (${r.url})`);
+ const type=(r.headers.get('content-type')||'').split(';')[0];
+ if(!/^image\/(jpeg|png|webp|gif|avif)$/.test(type))throw Error(`画像ではない応答: ${type} (HTTP ${r.status}, ${r.url})`);
+ const chunks=[];let size=0;
+ for await(const chunk of r.body){size+=chunk.length;if(size>12*1024*1024)throw Error('画像が12MBを超えています');chunks.push(chunk)}
+ if(!size)throw Error('画像が空です');
+ return {...value,originalImage:value.image,image:'data:'+type+';base64,'+Buffer.concat(chunks).toString('base64'),checkedAt:new Date().toISOString()};
+}
+
 async function cover(name,refresh){
  if(refresh)cache.delete(name);
  const hit=cache.get(name);if(hit&&Date.now()-hit.time<TTL)return hit.value;
