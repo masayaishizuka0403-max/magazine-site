@@ -1,7 +1,8 @@
 // Cover Grid server: Node.js 20+, no dependencies.
 // Covers are extracted only from configured official magazine/publisher pages.
 const fs=require('node:fs'),path=require('node:path');
-const ROOT=process.cwd(),TTL=6*60*60*1000;
+const releaseDate=require('../release-date.js');
+const ROOT=process.cwd(),TTL=60*60*1000;
 const cache=new Map(),pending=new Map();
 const manual=()=>{try{return JSON.parse(fs.readFileSync(path.join(ROOT,'covers.json'),'utf8'))}catch{return {}}};
 const sources=()=>{try{return JSON.parse(fs.readFileSync(path.join(ROOT,'sources.json'),'utf8'))}catch{return {}}};
@@ -30,9 +31,9 @@ function extract(html,source,name){
  const pageText=strip(html);
  const dates=[...pageText.matchAll(/(?:20\d{2})[./年-](?:0?[1-9]|1[0-2])(?:[./月-](?:0?[1-9]|[12]\d|3[01])日?)?/g)].map(m=>m[0]);
  const date=dates.find(d=>d.slice(0,4)>=String(new Date().getFullYear()-1))||'';
- return {status:'found',image:chosen.url,title,officialUrl:source.url,url:source.url,date,source:source.label||new URL(base).hostname,verifiedLatest:!!source.verifiedLatest};
+ return {status:'found',image:chosen.url,title,officialUrl:source.url,url:source.url,date,releaseDate:releaseDate.extract(strip(html)),source:source.label||new URL(base).hostname,verifiedLatest:!!source.verifiedLatest};
 }
-async function get(url){const r=await fetch(url,{headers:agent,signal:AbortSignal.timeout(15000),redirect:'follow'});if(!r.ok)throw Error('HTTP '+r.status);const ct=r.headers.get('content-type')||'';if(!/html|xhtml/i.test(ct))throw Error('公式ページがHTMLを返しませんでした');const bytes=Buffer.from(await r.arrayBuffer());const prefix=bytes.subarray(0,4096).toString('latin1');const charset=(ct.match(/charset\s*=\s*["']?([^;"'\s]+)/i)||prefix.match(/<meta\b[^>]*charset\s*=\s*["']?([^\s"'/>]+)/i)||[])[1]||'utf-8';let html;try{html=new TextDecoder(charset).decode(bytes)}catch{html=new TextDecoder('utf-8').decode(bytes)}if(/<title>Site Unavailable<\/title>/i.test(html))throw Error('公式ページがSite Unavailableを返しました');return {html,url:r.url}}
+async function get(url){const r=await fetch(url,{headers:agent,signal:AbortSignal.timeout(15000),redirect:'follow'});if(!r.ok)throw Error('HTTP '+r.status);const ct=r.headers.get('content-type')||'';if(!/html|xhtml/i.test(ct))throw Error('公式ページがHTMLを返しませんでした');const bytes=Buffer.from(await r.arrayBuffer());const prefix=bytes.subarray(0,4096).toString('latin1');const charset=(ct.match(/charset\s*=\s*["']?([^;"'\s]+)/i)||prefix.match(/<meta\b[^>]*charset\s*=\s*["']?([^\s"'/>]+)/i)||[])[1]||'utf-8';let html;try{html=new TextDecoder(charset).decode(bytes)}catch{html=new TextDecoder('utf-8').decode(bytes)}if(/<title>Site Unavailable<\/title>/i.test(html))throw Error('公式ページがSite Unavailableを返しました');return {html,url:r.url,releaseDate:releaseDate.extract(strip(html))}}
 // Shogakukan Sunday: the official homepage marks the current weekly cover with this alt text.
 async function sundayCover(source){
  const page=await get(source.url);
@@ -40,7 +41,7 @@ async function sundayCover(source){
   const a=parseAttrs(m[0]);
   if(a.alt!=='今週のサンデー')continue;
   const image=safeOfficial(a['data-src']||a['data-original']||a.src,page.url);
-  if(image)return {status:'found',image,title:'週刊少年サンデー 今週号',officialUrl:page.url,url:page.url,date:'',source:source.label,verifiedLatest:true};
+  if(image)return {status:'found',image,title:'週刊少年サンデー 今週号',officialUrl:page.url,url:page.url,releaseDate:page.releaseDate||'',date:'',source:source.label,verifiedLatest:true};
  }
  throw Error('公式トップページに「今週のサンデー」表紙画像がありません');
 }
@@ -102,7 +103,7 @@ function portraitCover(html,base,options={}){
 }
 function resultFor(source,page,image,title,extra={}){
  const pageDate=strip(page.html).match(/20\d{2}[./年-]\s*0?\d{1,2}(?:[./月-]\s*0?\d{1,2}日?)?/);
- return {status:'found',image:image.url,title:title||'',officialUrl:page.url,url:page.url,date:extra.date||pageDate?.[0]||'',source:source.label||new URL(page.url).hostname,verifiedLatest:true};
+ return {status:'found',image:image.url,title:title||'',officialUrl:page.url,url:page.url,releaseDate:page.releaseDate||'',date:extra.date||pageDate?.[0]||'',source:source.label||new URL(page.url).hostname,verifiedLatest:true};
 }
 async function utbCover(source){
  const page=await get(source.url);
@@ -167,7 +168,7 @@ async function dmagazineCover(source){
  image=image||imageCandidates(page.html,page.url).find(x=>/旬撮GIRL/i.test(x.alt))?.url;
  if(!image)throw Error('dマガジン公式配信ページに旬撮GIRLの表紙がありません');
  const date=(strip(page.html).match(/20\d{2}[./年-]\s*0?\d{1,2}[./月-]\s*\d{1,2}/)||[])[0]||'';
- return {status:'found',image,title,officialUrl:page.url,url:page.url,date,source:source.label,verifiedLatest:true};
+ return {status:'found',image,title,officialUrl:page.url,url:page.url,releaseDate:page.releaseDate||'',date,source:source.label,verifiedLatest:true};
 }
 async function tokumaCover(source,name){
  const index=await get(source.url),items=[];
@@ -369,7 +370,7 @@ async function actionCover(source){
     }
     const cover=book.book_images?.find(x=>Number(x.display_order)===1)||book.book_images?.[0];
     const image=safeOfficial(cover?.filename1000||cover?.filename330,source.url);
-    if(image)return {status:'found',image,title:book.book_name||item.book_name,officialUrl:source.url,url:source.url,date:book.release_dt||item.release_dt||'',source:source.label,verifiedLatest:true};
+    if(image)return {status:'found',image,title:book.book_name||item.book_name,officialUrl:source.url,url:source.url,date:book.release_dt||item.release_dt||'',releaseDate:releaseDate.normalize(book.release_dt||item.release_dt),source:source.label,verifiedLatest:true};
    }
    failures.push(grouping+': 対象の発売済み号が見つかりません（候補'+books.length+'件）');
   }catch(e){failures.push(grouping+': '+e.message)}
@@ -385,7 +386,7 @@ async function actionCover(source){
   const cover=book.book_images?.find(x=>Number(x.display_order)===1);
   const image=safeOfficial(cover?.filename1000||cover?.filename330,source.url);
   if(!image)throw Error('表紙画像なし');
-  return {status:'found',image,title:book.book_name,officialUrl:source.url,url:source.url,date:book.release_dt||'',source:'双葉社公式API（2026年11月17日号・最新号未確認）',verifiedLatest:false};
+  return {status:'found',image,title:book.book_name,officialUrl:source.url,url:source.url,date:book.release_dt||'',releaseDate:releaseDate.normalize(book.release_dt),source:'双葉社公式API（2026年11月17日号・最新号未確認）',verifiedLatest:false};
  }catch(e){failures.push('詳細API: '+e.message)}
  throw Error('漫画アクション取得失敗。HTML: '+(htmlError||'対象画像なし')+' / API: '+failures.join(' | '));
 }
@@ -400,7 +401,7 @@ async function futabashaCover(source,name){
  if(!book)throw Error('双葉社APIから最新号を取得できませんでした');
  const image=safeOfficial(book.book_images?.[0]?.filename330||book.book_images?.[0]?.filename175,'https://www.futabasha.co.jp/');
  if(!image)throw Error('双葉社APIの最新号に表紙画像URLがありません');
- return {status:'found',image,title:book.book_name||name+' 最新号',officialUrl:source.url,url:source.url,date:book.release_dt||'',source:source.label||'双葉社公式',verifiedLatest:true};
+ return {status:'found',image,title:book.book_name||name+' 最新号',officialUrl:source.url,url:source.url,date:book.release_dt||'',releaseDate:releaseDate.normalize(book.release_dt),source:source.label||'双葉社公式',verifiedLatest:true};
 }
 async function dragonAgeCover(source){
  const page=await get(source.url);const links=[];
@@ -531,12 +532,13 @@ async function downloadCover(value){
 }
 
 async function cover(name,refresh){
- if(refresh)cache.delete(name);
- const hit=cache.get(name);if(hit&&Date.now()-hit.time<TTL)return hit.value;
+ // Preserve the last successful cover on transient publisher failures.
+ const hit=cache.get(name);if(!refresh&&hit&&Date.now()-hit.time<(hit.value.image?TTL:60000))return hit.value;
  if(pending.has(name))return pending.get(name);
  const job=(async()=>{
   let value=await lookup(name);
   if(value.image){try{value=await downloadCover(value)}catch(e){value={status:'missing',officialUrl:value.officialUrl,error:e.message}}}
+  if(!value.image&&hit?.value.image)return {...hit.value,stale:true,error:value.error};
   cache.set(name,{value,time:Date.now()});return value;
  })().finally(()=>pending.delete(name));pending.set(name,job);return job;
 }
@@ -550,7 +552,7 @@ module.exports=async function handler(req,res){
   if(!name||name.length>80){res.status(400).send('invalid name');return}
   const result=await cover(name,u.searchParams.get('refresh')==='1');
   const forceRefresh=u.searchParams.get('refresh')==='1';
-  res.setHeader('Cache-Control',forceRefresh?'no-store':'public, max-age=0, s-maxage=21600, stale-while-revalidate=86400');
+  res.setHeader('Cache-Control',forceRefresh||result.stale?'no-store':result.image?'public, max-age=0, s-maxage=3600, stale-while-revalidate=21600':'public, max-age=0, s-maxage=60');
   res.status(200).json(result);
  }catch(e){res.status(500).json({error:e.message})}
 };
